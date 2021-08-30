@@ -11,6 +11,8 @@
 //! ```
 //! Done! Now you can use this crate.
 
+use sapp_jsutils::{JsObject, JsObjectWeak};
+
 #[no_mangle]
 extern "C" fn quad_storage_crate_version() -> u32 {
     let major = env!("CARGO_PKG_VERSION_MAJOR").parse::<u32>().unwrap();

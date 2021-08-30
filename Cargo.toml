@@ -21,7 +21,7 @@ include = [
 lazy_static = "1.4.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-sapp-jsutils = "0.1.5"
+quad-storage-sys = { path = "quad-storage-sys", version = "0.1.0" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 nanoserde = "0.1.29"

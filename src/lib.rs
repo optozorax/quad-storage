@@ -35,35 +35,13 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 
 #[cfg(target_arch = "wasm32")]
-use sapp_jsutils::{JsObject, JsObjectWeak};
+use quad_storage_sys::*;
 
 #[cfg(not(target_arch = "wasm32"))]
 use nanoserde::{DeJson, SerJson};
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::collections::HashMap;
-
-#[no_mangle]
-#[cfg(target_arch = "wasm32")]
-extern "C" fn quad_storage_crate_version() -> u32 {
-    let major = env!("CARGO_PKG_VERSION_MAJOR").parse::<u32>().unwrap();
-    let minor = env!("CARGO_PKG_VERSION_MINOR").parse::<u32>().unwrap();
-    let patch = env!("CARGO_PKG_VERSION_PATCH").parse::<u32>().unwrap();
-
-    (major << 24) + (minor << 16) + patch
-}
-
-#[cfg(target_arch = "wasm32")]
-extern "C" {
-    fn quad_storage_length() -> u32;
-    fn quad_storage_has_key(i: u32) -> u32;
-    fn quad_storage_key(i: u32) -> JsObject;
-    fn quad_storage_has_value(key: JsObjectWeak) -> u32;
-    fn quad_storage_get(key: JsObjectWeak) -> JsObject;
-    fn quad_storage_set(key: JsObjectWeak, value: JsObjectWeak);
-    fn quad_storage_remove(key: JsObjectWeak);
-    fn quad_storage_clear();
-}
 
 /// The local storage with methods to read and write data.
 #[cfg_attr(not(target_arch = "wasm32"), derive(DeJson, SerJson))]
@@ -94,23 +72,12 @@ impl Default for LocalStorage {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-fn js_to_option_string(object: JsObject, has: u32) -> Option<String> {
-    if has == 1 {
-        let mut result = String::new();
-        object.to_string(&mut result);
-        Some(result)
-    } else {
-        None
-    }
-}
-
 impl LocalStorage {
     #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         #[cfg(target_arch = "wasm32")]
         {
-            unsafe { quad_storage_length() as usize }
+            len()
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
@@ -122,9 +89,7 @@ impl LocalStorage {
     pub fn key(&self, pos: usize) -> Option<String> {
         #[cfg(target_arch = "wasm32")]
         {
-            js_to_option_string(unsafe { quad_storage_key(pos as u32) }, unsafe {
-                quad_storage_has_key(pos as u32)
-            })
+            key(pos)
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
@@ -135,13 +100,7 @@ impl LocalStorage {
     pub fn get(&self, key: &str) -> Option<String> {
         #[cfg(target_arch = "wasm32")]
         {
-            let object = JsObject::string(key);
-            let weak_object = object.weak();
-            let result = js_to_option_string(unsafe { quad_storage_get(weak_object) }, unsafe {
-                quad_storage_has_value(weak_object)
-            });
-            drop(object);
-            result
+            get(key)
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
@@ -151,9 +110,7 @@ impl LocalStorage {
     pub fn set(&mut self, key: &str, value: &str) {
         #[cfg(target_arch = "wasm32")]
         {
-            unsafe {
-                quad_storage_set(JsObject::string(key).weak(), JsObject::string(value).weak());
-            }
+            set(key, value)
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
@@ -164,9 +121,7 @@ impl LocalStorage {
     pub fn remove(&mut self, key: &str) {
         #[cfg(target_arch = "wasm32")]
         {
-            unsafe {
-                quad_storage_remove(JsObject::string(key).weak());
-            }
+            remove(key)
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
@@ -177,9 +132,7 @@ impl LocalStorage {
     pub fn clear(&mut self) {
         #[cfg(target_arch = "wasm32")]
         {
-            unsafe {
-                quad_storage_clear();
-            }
+            clear()
         }
         #[cfg(not(target_arch = "wasm32"))]
         {

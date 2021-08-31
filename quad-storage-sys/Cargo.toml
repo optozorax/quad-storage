@@ -9,7 +9,7 @@ repository = "https://github.com/optozorax/quad-storage"
 description = """
 Simple local storage API using Web Storage API in WASM.
 
-This only works on wasm. For a higher level API use quad-storage-sys.
+This only works on wasm. For a higher level API use quad-storage.
 """
 
 [dependencies]

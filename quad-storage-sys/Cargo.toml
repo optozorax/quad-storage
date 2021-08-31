@@ -1,0 +1,16 @@
+[package]
+name = "quad-storage-sys"
+version = "0.1.0"
+edition = "2018"
+authors = ["Ilya Sheprut <optozorax@gmail.com>"]
+license = "MIT/Apache-2.0"
+homepage = "https://github.com/optozorax/quad-storage"
+repository = "https://github.com/optozorax/quad-storage"
+description = """
+Simple local storage API using Web Storage API in WASM.
+
+This only works on wasm. For a higher level API use quad-storage.
+"""
+
+[dependencies]
+sapp-jsutils = "0.1.5"

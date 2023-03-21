@@ -9,24 +9,20 @@ repository = "https://github.com/optozorax/quad-storage"
 description = """
 Plugin for macro-, mini-quad (quads) to save data in simple local storage using Web Storage API in WASM and local file on a native platforms.
 """
-readme="README.md"
-include = [
-  "LICENSE-APACHE",
-  "LICENSE-MIT",
-  "**/*.rs",
-  "Cargo.toml",
-]
+readme = "README.md"
+include = ["LICENSE-APACHE", "LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 
 [dependencies]
-lazy_static = "1.4.0"
+lazy_static = "1.4"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-quad-storage-sys = { path = "quad-storage-sys", version = "0.1.0" }
+quad-storage-sys = { path = "quad-storage-sys", version = "0.1" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-nanoserde = "0.1.29"
+nanoserde = "0.1"
+dirs = "5.0"
 
 [dev-dependencies]
-egui-macroquad = "0.5.0"
-macroquad = "0.3.7"
-egui = "0.13.1"
+egui-macroquad = "0.15"
+macroquad = "0.3"
+egui = "0.21"

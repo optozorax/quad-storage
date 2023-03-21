@@ -13,4 +13,4 @@ This only works on wasm. For a higher level API use quad-storage.
 """
 
 [dependencies]
-sapp-jsutils = "0.1.5"
+sapp-jsutils = "0.1"

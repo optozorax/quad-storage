@@ -51,7 +51,18 @@ pub struct LocalStorage {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-const LOCAL_FILE: &str = "local.data";
+lazy_static! {
+    pub static ref LOCAL_FILE: std::path::PathBuf = dirs::config_local_dir()
+        .unwrap_or_default()
+        .join(
+            std::env::current_exe()
+                .unwrap_or_else(|_| "local".into())
+                .file_stem()
+                // will never panic because is called on ~.exe or local
+                .unwrap()
+        )
+        .with_extension("data");
+}
 
 impl Default for LocalStorage {
     fn default() -> Self {
@@ -61,7 +72,7 @@ impl Default for LocalStorage {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            if let Ok(file) = std::fs::read_to_string(LOCAL_FILE) {
+            if let Ok(file) = std::fs::read_to_string(LOCAL_FILE.as_path()) {
                 LocalStorage::deserialize_json(&file).unwrap()
             } else {
                 LocalStorage {
@@ -143,7 +154,7 @@ impl LocalStorage {
 
     #[cfg(not(target_arch = "wasm32"))]
     fn save(&self) {
-        std::fs::write(LOCAL_FILE, self.serialize_json()).unwrap();
+        std::fs::write(LOCAL_FILE.as_path(), self.serialize_json()).unwrap();
     }
 }
 

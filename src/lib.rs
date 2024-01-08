@@ -50,8 +50,43 @@ pub struct LocalStorage {
     local: HashMap<String, String>,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(target_os = "ios")]
+extern crate objc;
+#[cfg(target_os = "ios")]
+use objc::runtime::Object;
+#[cfg(target_os = "ios")]
+use objc::runtime::Class;
+#[cfg(target_os = "ios")]
+use objc::{msg_send, sel, sel_impl};
+#[cfg(target_os = "ios")]
+use std::ffi::{CStr, c_char};
+
+#[cfg(target_os = "ios")]
+fn get_documents_directory() -> String {
+    unsafe {
+        let ns_file_manager = Class::get("NSFileManager").unwrap();
+        let file_manager: *mut Object = msg_send![ns_file_manager, defaultManager];
+        let ns_document_directory: u64 = 9; // NSDocumentDirectory
+        let urls: *mut Object = msg_send![file_manager, URLsForDirectory:ns_document_directory inDomains:1];
+        let url: *mut Object = msg_send![urls, firstObject];
+        let path: *const c_char = msg_send![url, fileSystemRepresentation];
+        let c_str: &CStr = CStr::from_ptr(path);
+        c_str.to_string_lossy().into_owned()
+    }
+}
+
+#[cfg(all(not(target_arch = "wasm32"), not(target_os = "ios")))]
 const LOCAL_FILE: &str = "local.data";
+
+#[cfg(target_os = "ios")]
+fn get_local_file_path() -> String {
+    get_documents_directory() + "/local.data"
+}
+
+#[cfg(all(not(target_arch = "wasm32"), not(target_os = "ios")))]
+fn get_local_file_path() -> &'static str {
+    LOCAL_FILE
+}
 
 impl Default for LocalStorage {
     fn default() -> Self {
@@ -61,7 +96,7 @@ impl Default for LocalStorage {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            if let Ok(file) = std::fs::read_to_string(LOCAL_FILE) {
+            if let Ok(file) = std::fs::read_to_string(get_local_file_path()) {
                 LocalStorage::deserialize_json(&file).unwrap()
             } else {
                 LocalStorage {
@@ -143,7 +178,7 @@ impl LocalStorage {
 
     #[cfg(not(target_arch = "wasm32"))]
     fn save(&self) {
-        std::fs::write(LOCAL_FILE, self.serialize_json()).unwrap();
+        std::fs::write(get_local_file_path(), self.serialize_json()).unwrap();
     }
 }
 
